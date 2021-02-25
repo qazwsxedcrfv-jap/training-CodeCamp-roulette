@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>jQuery</title>
+    <style type="text/css">
+        table {
+            border: solid 3px;
+            margin-bottom: 10px;
+            border-collapse: collapse;
+        }
+
+        tr,
+        td {
+            border: solid 1px;
+            text-align: center;
+            font-size: 50px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script>
+        /* 課題処理を追加 */
+        var cell = 0;//セル個数およびID識別用
+        var interval_id;
+        var rand;
+        var lastRand;//同じ目が連続で出ないように
+        var data = new Array(); //一度停止したセル格納用
+        var flg = 'GO';//一度停止したセルかどうか判別用
+        
+        //load時にtable作成
+        function createTable() {
+            for (var i = 1; i <= 4; i++) {
+                $('#matrix').append('<tr id="R' + i + '"></tr>');
+                for (var j = 1; j <= 4; j++) {
+                    cell++;
+                    $('#R' + i + '').append('<td id="C' + cell + '">' + cell + '</td>').css('background-color','white');
+                }
+            }
+            $('#stop').prop('disabled', true);
+        }
+
+        function start() {
+            interval_id = setInterval(shuffle, 100);
+            $('#start').prop('disabled', true);
+            $('#stop').prop('disabled', false);
+        }
+
+        function shuffle() {
+            // 最後の決まりきった1個は
+            if (data.length === (cell - 1)) {
+                for (var i = 1; i <= cell; i++) {
+                    var result = data.some(function(value) {
+                        return value === i;
+                    });
+                    if (result === false) {
+                        rand = i;
+                        $('#C' + i).css('background-color', 'pink');
+                    }
+                }
+            }
+            else {
+                while (rand === lastRand || rand === 0 || flg === 'NG') {
+                    rand = Math.floor(Math.random() * (cell + 1));
+                    result = data.some(function(value) {
+                        return value === rand;
+                    });
+                    if (result === true) {
+                        flg = 'NG';
+                    }
+                    else {
+                        flg = 'GO';
+                    }
+                }
+                for (var i = 1; i <= cell; i++) {
+                    result = data.some(function(value) {
+                        return value === i;
+                    });
+                    if (result === true) {
+                        $('#C' + i).css('background-color', 'red');
+                    }
+                    else if (i === rand) {
+                        $('#C' + i).css('background-color', 'pink');
+                    }
+                    else {
+                        $('#C' + i).css('background-color', 'white');
+                    }
+                }
+                lastRand = rand;
+            }
+        }
+
+        function stop() {
+            clearInterval(interval_id);
+            $('#C' + rand).css('background-color', 'red');
+            data.push(rand);
+            if (data.length !== cell) {
+                $('#stop').prop('disabled', true);
+                $('#start').prop('disabled', false);
+            }
+        }
+
+        function reset() {
+            clearInterval(interval_id);
+            rand = 0;
+            flg = 'GO';
+            data.splice(0);
+            $('#stop').prop('disabled', true);
+            $('#start').prop('disabled', false);
+            for (var i = 1; i <= cell; i++) {
+                $('#C' + i).css('background-color', 'white');
+
+            }
+        }
+
+        $(function() {
+            createTable();
+            $('#start').click(start);
+            $('#stop').click(stop);
+            $('#reset').click(reset);
+        });
+    </script>
+</head>
+
+<body>
+    <div>
+        <table id="matrix">
+        </table>
+        <button id="start">スタート</button>
+        <button id="stop">ストップ</button>
+        <button id="reset">リセット</button>
+    </div>
+
+</body>
+
+</html>
